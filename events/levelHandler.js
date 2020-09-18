@@ -1,40 +1,45 @@
-const fs = require("fs");
 const rankUp = require('../commands/rankUp');
-let db = JSON.parse(fs.readFileSync("database.json", "utf8"));
+const SQLite = require("better-sqlite3");
+const sql = new SQLite('../db.sqlite');
+const Discord = require('discord.js');
+const client = new Discord.Client();
 
 module.exports = msg => {
-    
+
+    // And then we have two prepared statements to get and set the score data.
+    client.getXP = sql.prepare("SELECT * FROM db WHERE user = ? AND guild = ?");
+    client.setXP = sql.prepare("INSERT OR REPLACE INTO db (id, user, guild, xp, level) VALUES (@id, @user, @guild, @xp, @level);");
+
     // ignore bots
     if (msg.author.bot) 
         return; 
-
-    // if the user is not on db add the user and change their values to 0
-    if (!db[msg.author.id + msg.channel.name]) db[msg.author.id + msg.channel.name] = {
-            xp: 0,
-            level: 0,
-            rank: 'Scrumslave'
-        };
-
-    let userInfo = db[msg.author.id + msg.channel.name];
-    //Increases the XP of the User who sent the msg
-    userInfo.xp++;
-    //Level up handler
-    if(userInfo.xp > 100) {
-        //Checks for max level
-        if(userInfo.level > 9){
-            return msg.reply("You're already max level")
-        }else {
-            //Increases level and resets xp to 0
-            userInfo.level++;
-            userInfo.xp = 0;
-            rankUp(userInfo, msg);
-            msg.reply(`You've earned enough XP to level up in the ${msg.channel.name} channel and are now level ${userInfo.level}` + '\n' +
-            `you are now a ${userInfo.rank}`);
+    let userInfo;
+    if (msg.guild) {
+        userInfo = client.getXP.get(msg.author.id, msg.guild.id);
+        if (!userInfo) {
+            userInfo = { 
+                id: `${msg.guild.id}-${msg.author.id}`, 
+                user: msg.author.username, 
+                guild: msg.guild.id, 
+                xp: 0, 
+                level: 1 
+            }
         }
+        userInfo.xp++;
+        if(userInfo.xp > 100) {
+            //Checks for max level
+            if(userInfo.level > 9){
+                return msg.reply("You're already max level")
+            }else {
+                //Increases level and resets xp to 0
+                userInfo.level++;
+                userInfo.xp = 0;
+                
+                msg.reply(`You've earned enough XP to level up in the ${msg.channel.name} channel and are now level ${userInfo.level}` + '\n' +
+                `you are now a ${rankUp(userInfo, msg)}`);
+            }
+        }
+        client.setXP.run(userInfo);
     }
-    //Writes any changes to database.json
-    fs.writeFile("./database.json", JSON.stringify(db), (x) => {
-        if (x) console.error(x)
-    });
 }
 

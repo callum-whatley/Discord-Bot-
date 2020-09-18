@@ -1,42 +1,48 @@
-const fs = require('fs');
-let db = JSON.parse(fs.readFileSync("memeDB.json", "utf8"));
-//Current Size of the memeVault
-let size = Object.keys(db).length;
-
-
+const Discord = require('discord.js');
+const SQLite = require('better-sqlite3');
+const sql = SQLite('../mdb.sqlite');
+const client = new Discord.Client();
 
 module.exports = msg => {
 
+    let sizeSQL = sql.prepare("SELECT COUNT(*) FROM mdb").get();
+    let size = Object.values(sizeSQL);
     let args = msg.content.substring(1).split(" ");
     args = args.splice(1);
-
     //Handles no argument errors
     if(!args[0])
         return msg.reply('No arguments provided');
-    
-        
 
     //Continues parsing msg for memevault options and potential meme urls
     const option = args[0];
     args = args.splice(1);
     const meme = args[0];
 
-    //Increases size if meme argument is provided
-    if(meme) 
-        size += 1;
-
+    client.getMeme = sql.prepare("SELECT * FROM mdb WHERE channel = ?");
+    client.setMeme = sql.prepare("INSERT OR REPLACE INTO mdb (id, user, channel, meme) VALUES (@id, @user, @channel, @meme);");
+    client.delMeme = sql.prepare(`DELETE FROM mdb WHERE meme = ?`).run(meme);
+    let memeInfo = client.getMeme.get(msg.channel.name);
+    let memeArr = sql.prepare("SELECT meme FROM mdb WHERE channel = ?").all(msg.channel.name);
     switch(option){
         case 'add': 
             //if the memeDB.json doesn't already contain the meme it will create it adding the provided meme
-            if (!db[msg.channel.name + size]) db[msg.channel.name + size] = {
-                userName: msg.author.username,
-                memeUrl: meme
-            };
-            msg.reply('Meme has been added to the vault');
+            if (!memeInfo || meme != memeInfo.meme) {
+                memeInfo = {
+                    id: msg.author.id,
+                    user: msg.author.username,
+                    channel: msg.channel.name,
+                    meme: meme
+                };
+                
+                msg.reply('Meme has been added to the vault');
+            }else {
+                msg.reply('Meme is already in vault');
+            }
+                
             break;
         case 'remove':
             try {
-                delete db[msg.channel.name + meme];
+                sql.prepare(`DELETE FROM mdb WHERE meme = ?`).run(meme);
                 msg.reply('Meme has been removed from the vault');
                 break;
             }catch(error){
@@ -46,30 +52,28 @@ module.exports = msg => {
         case 'print':
             //Checks if the size is empty
             if(size == 0)
-    msg.reply('memeVault is empty');
+                msg.reply('memeVault is empty');
             //Creates a string for the list of memes to be added to
             let memes = '';
+           
+            console.log(memeArr);
             //Appends the memeUrl for each entry to the meme string
-            for(let i = 1; i <= size; i++){
-                memes += (`${db[msg.channel.name + `${i}`].memeUrl}` + '\n');
+            for(let i = 0; i < size; i++){
+                memes += (`${Object.values(memeArr[i])}` + '\n');
             }
             msg.channel.send(memes);
             break;
         case 'size':
-            msg.reply(`There is currently ${size} memes stored in the vault`);
+            msg.reply(`There is currently ${size} meme(s) stored in the vault`);
             break;
         case 'meme':
             //Sends the channel a random meme from the vault
-            let random = Math.floor((Math.random() * size) + 1);
-            while(!(db[msg.channel.name + `${random}`].memeUrl)) {
-                random = Math.floor((Math.random() * size) + 1);
+            let random = Math.floor((Math.random() * size));
+            while(!(memeArr[random])) {
+                random = Math.floor((Math.random() * size));
             }
-            msg.channel.send(`${db[msg.channel.name + `${random}`].memeUrl}`);
+            msg.channel.send(`${Object.values(memeArr[random])}`);
             break;
     }
-    //Writes changes to the memeDB.json
-    fs.writeFile("./memeDB.json", JSON.stringify(db), (x) => {
-        if (x) 
-            console.error(x);
-    });
+    client.setMeme.run(memeInfo);
 }

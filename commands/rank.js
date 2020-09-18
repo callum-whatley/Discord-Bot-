@@ -1,31 +1,30 @@
-const fs = require("fs");
 const Discord = require('discord.js');
-let db = JSON.parse(fs.readFileSync("database.json", "utf8"));
-
+const rankUp = require('../commands/rankUp');
+const SQLite = require('better-sqlite3');
+const sql = new SQLite('../db.sqlite');
+const client = new Discord.Client();
 
 module.exports = msg => {
     
-    
-    console.log(msg.author.id + msg.channel.name);
-    
+    client.getInfo = sql.prepare("SELECT * FROM db WHERE user = ? AND guild = ?");
+    const uI = client.getInfo.get(msg.author.username, msg.guild.id)
     let member = msg.mentions.members.first();
     //Creates a reply with User stats
     
     //If this message doesn't have a direct target it will target the msg's creator
     if(!member) {
         try{
-            //let userInfo = db[msg.author.id + msg.channel.name];
             let embed = new Discord.RichEmbed()
             .setColor(0x4286f4)
-            .addField("Level", db[msg.author.id + msg.channel.name].level)
-            .addField("Rank", db[msg.author.id + msg.channel.name].rank)
-            .addField("XP", db[msg.author.id + msg.channel.name].xp+"/100");
+            .addField("Level", uI.level)
+            .addField("Rank", rankUp(uI, msg))
+            .addField("XP", uI.xp+"/100");
             return msg.channel.send(embed);
         }catch(error){
              return console.log(error);
         }
     }
-    let memberInfo = db[member.id];
+    let memberInfo = client.getScore.get(member.username, msg.guild.id);;
     //Checks that the targeted member has an entry in the memeVault
     if(!memberInfo) 
         return msg.channel.send('No info');
@@ -33,7 +32,7 @@ module.exports = msg => {
     let embed2 = new Discord.RichEmbed()
         .setColor(0x4286f4)
         .addField("Level", memberInfo.level)
-        .addField("Rank", memberInfo.rank)
+        .addField("Rank", rankUp(memberInfo, msg))
         .addField("XP", memberInfo.xp+"/100");
 
     msg.channel.send(embed2);

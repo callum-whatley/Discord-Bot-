@@ -5,9 +5,6 @@ const help = require('../commands/help');
 const memeVault = require('../commands/memeVault');
 const lvler = require('./levelHandler');
 const rank = require('../commands/rank')
-const fs = require("fs");
-let db = JSON.parse(fs.readFileSync("database.json", "utf8"))
-
 
 
 
@@ -46,6 +43,14 @@ module.exports = (client, msg) => {
                 break;
             case 'memevault':
                 memeVault(msg);
+                break;
+            case 'meme':
+            //Sends the channel a random meme from the vault
+                let random = Math.floor((Math.random() * size) + 1);
+                while(!(mdb[msg.channel.name + `${random}`].memeUrl)) {
+                    random = Math.floor((Math.random() * size) + 1);
+                }
+                msg.channel.send(`${mdb[msg.channel.name + `${random}`].memeUrl}`);
                 break;
         }
     }
