@@ -15,7 +15,7 @@ module.exports = msg => {
         return; 
     let userInfo;
     if (msg.guild) {
-        userInfo = client.getXP.get(msg.author.id, msg.guild.id);
+        userInfo = client.getXP.get(msg.author.username, msg.guild.id);
         if (!userInfo) {
             userInfo = { 
                 id: `${msg.guild.id}-${msg.author.id}`, 
@@ -26,6 +26,7 @@ module.exports = msg => {
             }
         }
         userInfo.xp++;
+        
         if(userInfo.xp > 100) {
             //Checks for max level
             if(userInfo.level > 9){
@@ -36,7 +37,7 @@ module.exports = msg => {
                 userInfo.xp = 0;
                 
                 msg.reply(`You've earned enough XP to level up in the ${msg.channel.name} channel and are now level ${userInfo.level}` + '\n' +
-                `you are now a ${rankUp(userInfo, msg)}`);
+                `you are now a ${rankUp(userInfo)}`);
             }
         }
         client.setXP.run(userInfo);

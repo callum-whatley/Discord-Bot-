@@ -5,7 +5,7 @@ const client = new Discord.Client();
 
 module.exports = msg => {
 
-    let sizeSQL = sql.prepare("SELECT COUNT(*) FROM mdb").get();
+    let sizeSQL = sql.prepare("SELECT COUNT(*) FROM mdb WHERE channel = ?").get(msg.channel.name);
     let size = Object.values(sizeSQL);
     let args = msg.content.substring(1).split(" ");
     args = args.splice(1);
@@ -55,8 +55,6 @@ module.exports = msg => {
                 msg.reply('memeVault is empty');
             //Creates a string for the list of memes to be added to
             let memes = '';
-           
-            console.log(memeArr);
             //Appends the memeUrl for each entry to the meme string
             for(let i = 0; i < size; i++){
                 memes += (`${Object.values(memeArr[i])}` + '\n');
