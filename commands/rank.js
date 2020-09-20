@@ -25,16 +25,22 @@ module.exports = msg => {
         }
     }else{
         //Checks that the targeted member has an entry in the memeVault
-        let memberInfo = client.getScore.get(member.username, msg.guild.id);
-        if(!memberInfo) 
-            return msg.channel.send('No info');
-        //Creates a reply with the targeted members stats
-        let embed2 = new Discord.RichEmbed()
-        .setColor(0x4286f4)
-        .addField("Level", memberInfo.level)
-        .addField("Rank", rankList(memberInfo))
-        .addField("XP", memberInfo.xp+"/100");
+        try{
+            let memberInfo = client.getScore.get(member.user.username, msg.guild.id);
+            console.log(memberInfo);
+            if(!memberInfo) 
+                return msg.channel.send('No info');
+            //Creates a reply with the targeted members stats
+            let embed2 = new Discord.RichEmbed()
+            .setColor(0x4286f4)
+            .addField("Level", memberInfo.level)
+            .addField("Rank", rankList(memberInfo))
+            .addField("XP", memberInfo.xp+"/100");
 
-        msg.channel.send(embed2);
+            msg.channel.send(embed2);
+        }catch(err){
+            msg.reply("Uh Oh");
+        }
+        
     }
 }
