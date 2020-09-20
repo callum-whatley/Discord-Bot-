@@ -10,5 +10,4 @@ fs.readdir('./events/', (err,files) => {
         client.on(eventName, arg => eventHandler(client, arg));
     })
 })
-
-client.login('NjcyNTcyMjAxOTAzMzI1MTk0.XjNbrA.FVWw9TvDfqURBjpKPoaIShW94M8');
+client.login(process.env.BOT_TOKEN);

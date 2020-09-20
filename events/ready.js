@@ -1,6 +1,6 @@
 const SQLite = require("better-sqlite3");
-const sql = new SQLite('../db.sqlite');
-const sql2 = new SQLite('../mdb.sqlite');
+const sql = new SQLite('./db.sqlite');
+const sql2 = new SQLite('./mdb.sqlite');
 
 module.exports = client => {
     const table = sql.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name = 'db';").get();

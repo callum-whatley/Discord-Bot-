@@ -1,6 +1,6 @@
-const rankUp = require('../commands/rankUp');
+const rankUp = require('../commands/rankList');
 const SQLite = require("better-sqlite3");
-const sql = new SQLite('../db.sqlite');
+const sql = new SQLite('./db.sqlite');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
