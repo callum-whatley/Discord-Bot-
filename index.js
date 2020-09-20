@@ -11,4 +11,4 @@ fs.readdir('./events/', (err,files) => {
     })
 })
 
-client.login(process.env.CLIENT_ID);
+client.login('NjcyNTcyMjAxOTAzMzI1MTk0.XjNbrA.FVWw9TvDfqURBjpKPoaIShW94M8');
