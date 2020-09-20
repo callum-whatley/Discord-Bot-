@@ -9,7 +9,6 @@ module.exports = msg => {
     client.getInfo = sql.prepare("SELECT * FROM db WHERE user = ? AND guild = ?");
     const userInfo = client.getInfo.get(msg.author.username, msg.guild.id);
     let member = msg.mentions.members.first();
-    let memberInfo = client.getScore.get(member.username, msg.guild.id);
     //Creates a reply with User stats
     
     //If this message doesn't have a direct target it will target the msg's creator
@@ -26,6 +25,7 @@ module.exports = msg => {
         }
     }else{
         //Checks that the targeted member has an entry in the memeVault
+        let memberInfo = client.getScore.get(member.username, msg.guild.id);
         if(!memberInfo) 
             return msg.channel.send('No info');
         //Creates a reply with the targeted members stats
