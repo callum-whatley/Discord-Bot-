@@ -1,2 +1,8 @@
 .env
 node_modules
+db.sqlite
+db.sqlite-shm
+db.sqlite-wal
+mdb.sqlite
+mdb.sqlite-shm
+mdb.sqlite-wal
